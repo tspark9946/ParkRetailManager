@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TRMWPFUI
+namespace TRMDesktopUI.Views
 {
     /// <summary>
-    /// MainWindow.xaml에 대한 상호 작용 논리
+    /// LoginView.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class LoginView : UserControl
     {
-        public MainWindow()
+        public LoginView()
         {
             InitializeComponent();
         }
