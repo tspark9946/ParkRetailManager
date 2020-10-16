@@ -8,9 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TRMDataManager.LIbrary
+namespace TRMDataManager.LIbrary.Internal.DataAccess
+
 {
-    public class SqlDataAccess
+    internal class SqlDataAccess
     {
         public string GetConnectionString(string name)
         {
