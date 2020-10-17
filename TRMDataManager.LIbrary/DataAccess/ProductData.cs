@@ -8,15 +8,14 @@ using TRMDataManager.LIbrary.Models;
 
 namespace TRMDataManager.LIbrary.DataAccess
 {
-    public class UserData
+    public class ProductData
     {
-        public List<UserModel> GetUserById(string Id)
+        public List<ProductModel> GetProducts()
         {
             SqlDataAccess sql = new SqlDataAccess();
+            
+            var ret = sql.LoadData<ProductModel, dynamic>("dbo.spProduct_GetAll", new { } , "TRMData");
 
-            var param = new { Id = Id };
-
-            var ret = sql.LoadData<UserModel, dynamic>("dbo.spUserLookup", param, "TRMData");
             return ret;
         }
 

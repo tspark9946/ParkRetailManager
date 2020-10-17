@@ -10,9 +10,9 @@ using TRMDataManager.LIbrary.Models;
 namespace TRMDataManager.Controllers
 {
     [Authorize]
-    
     public class UserController : ApiController
     {
+        [HttpGet]
         public UserModel GetById()
         {
             string userId = RequestContext.Principal.Identity.GetUserId();
