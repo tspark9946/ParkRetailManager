@@ -1,4 +1,5 @@
-﻿using Caliburn.Micro;
+﻿using AutoMapper;
+using Caliburn.Micro;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,23 +9,28 @@ using System.Threading.Tasks;
 using TRMDesktopUI.Library.Api;
 using TRMDesktopUI.Library.Helpers;
 using TRMDesktopUI.Library.Models;
+using TRMDesktopUI.Models;
 
 namespace TRMDesktopUI.ViewModels 
 {
     public class SalesViewModel : Screen
     {
-        private IProductEndpoint _productEndpoint;
-        private IConfigHelper _configHelper;
-        private ProductModel _selectedProduct;
-        private ISaleEndPoint _saleEndPoint;
-        private BindingList<ProductModel> _products;
+        IProductEndpoint _productEndpoint;
+        IConfigHelper _configHelper;
+        ISaleEndPoint _saleEndPoint;
+        IMapper _mapper;
+
+        private ProductDisplayModel _selectedProduct;
+        private BindingList<ProductDisplayModel> _products;
         private int _itemQuantity = 1;
 
-        public SalesViewModel(IProductEndpoint productEndpoint, IConfigHelper configHelper, ISaleEndPoint saleEndPoint)
+        public SalesViewModel(IProductEndpoint productEndpoint, IConfigHelper configHelper, ISaleEndPoint saleEndPoint,
+            IMapper mapper)
         {
             _productEndpoint = productEndpoint;
             _saleEndPoint = saleEndPoint;
             _configHelper = configHelper;
+            _mapper = mapper;
             
         }
 
@@ -37,12 +43,11 @@ namespace TRMDesktopUI.ViewModels
         {
              
             var productList = await _productEndpoint.GetAll();
-            Products = new BindingList<ProductModel>(productList);
+            var products = _mapper.Map<List<ProductDisplayModel>>(productList);
+            Products = new BindingList<ProductDisplayModel>(products); 
         }
 
-        
-
-        public ProductModel SelectedProduct
+        public ProductDisplayModel SelectedProduct
         {
             get { return _selectedProduct; }
             set 
@@ -52,10 +57,7 @@ namespace TRMDesktopUI.ViewModels
             }
         }
 
-
-        
-
-        public BindingList<ProductModel> Products
+        public BindingList<ProductDisplayModel> Products
         {
             get { return _products; }
             set 
@@ -64,9 +66,9 @@ namespace TRMDesktopUI.ViewModels
                 NotifyOfPropertyChange(() => Products);
             }
         }
-        private BindingList<CartItemModel> _cart = new BindingList<CartItemModel>();
+        private BindingList<CartItemDisplayModel> _cart = new BindingList<CartItemDisplayModel>();
                 
-        public BindingList<CartItemModel> Cart
+        public BindingList<CartItemDisplayModel> Cart
         {
             get { return _cart; }
             set 
@@ -75,9 +77,6 @@ namespace TRMDesktopUI.ViewModels
                 NotifyOfPropertyChange(() => Cart);
             }
         }
-
-
-        
 
         public int ItemQuantity
         {
@@ -153,7 +152,7 @@ namespace TRMDesktopUI.ViewModels
             {
                 bool ret = false;
 
-                if (ItemQuantity>0 && SelectedProduct?.QuantityInStock >= ItemQuantity)
+                if (ItemQuantity > 0 && SelectedProduct?.QuantityInStock >= ItemQuantity)
                 {
                     ret = true;
                 }
@@ -164,7 +163,7 @@ namespace TRMDesktopUI.ViewModels
         }
         public void AddToCart()
         {
-            CartItemModel existingItem = Cart.FirstOrDefault(XamlGeneratedNamespace => XamlGeneratedNamespace.Product == SelectedProduct);
+            CartItemDisplayModel existingItem = Cart.FirstOrDefault(XamlGeneratedNamespace => XamlGeneratedNamespace.Product == SelectedProduct);
 
             if (existingItem != null)
             {
@@ -175,7 +174,7 @@ namespace TRMDesktopUI.ViewModels
             }
             else
             {
-                CartItemModel item = new CartItemModel
+                CartItemDisplayModel item = new CartItemDisplayModel
                 {
                     Product = SelectedProduct,
                     QuantityInCart = ItemQuantity
