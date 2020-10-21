@@ -21,6 +21,9 @@ namespace TRMDesktopUI.ViewModels
         IMapper _mapper;
 
         private ProductDisplayModel _selectedProduct;
+        private CartItemDisplayModel _selectedCartItem;
+
+
         private BindingList<ProductDisplayModel> _products;
         private int _itemQuantity = 1;
 
@@ -41,7 +44,7 @@ namespace TRMDesktopUI.ViewModels
         }
         public async Task LoadProducts()
         {
-             
+              
             var productList = await _productEndpoint.GetAll();
             var products = _mapper.Map<List<ProductDisplayModel>>(productList);
             Products = new BindingList<ProductDisplayModel>(products); 
@@ -56,6 +59,29 @@ namespace TRMDesktopUI.ViewModels
                 NotifyOfPropertyChange(() => SelectedProduct);
             }
         }
+
+        private async Task ResetSalesViewModel()
+        {
+            Cart = new BindingList<CartItemDisplayModel>();
+            await LoadProducts();
+
+            NotifyOfPropertyChange(() => SubTotal);
+            NotifyOfPropertyChange(() => Tax);
+            NotifyOfPropertyChange(() => Total);
+            NotifyOfPropertyChange(() => CanCheckOut);
+
+        }
+        public CartItemDisplayModel SelectedCartItem
+        {
+            get { return _selectedCartItem; }
+            set 
+            { 
+                _selectedCartItem = value;
+                NotifyOfPropertyChange(() => SelectedCartItem);
+                NotifyOfPropertyChange(() => CanRemoveFromCart);
+            }
+        }
+
 
         public BindingList<ProductDisplayModel> Products
         {
@@ -75,6 +101,7 @@ namespace TRMDesktopUI.ViewModels
             { 
                 _cart = value;
                 NotifyOfPropertyChange(() => Cart);
+                NotifyOfPropertyChange(() => CanRemoveFromCart);
             }
         }
 
@@ -163,14 +190,11 @@ namespace TRMDesktopUI.ViewModels
         }
         public void AddToCart()
         {
-            CartItemDisplayModel existingItem = Cart.FirstOrDefault(XamlGeneratedNamespace => XamlGeneratedNamespace.Product == SelectedProduct);
+            CartItemDisplayModel existingItem = Cart.FirstOrDefault(x => x.Product == SelectedProduct);
 
             if (existingItem != null)
             {
                 existingItem.QuantityInCart += ItemQuantity;
-
-                Cart.Remove(existingItem);
-                Cart.Add(existingItem);
             }
             else
             {
@@ -196,16 +220,36 @@ namespace TRMDesktopUI.ViewModels
             {
                 bool ret = false;
 
+                if (SelectedCartItem != null && SelectedCartItem.QuantityInCart > 0)
+                {
+                    ret = true;
+                } 
                 return ret;
             }
 
         }
         public void RemoveFromCart()
         {
+            if (SelectedCartItem == null)
+            {
+                return;
+            }
+
+            SelectedCartItem.Product.QuantityInStock += 1;
+            if (SelectedCartItem.QuantityInCart > 1)
+            {
+                SelectedCartItem.QuantityInCart -= 1;
+            }
+            else
+            {
+                Cart.Remove(SelectedCartItem);
+            }
+
             NotifyOfPropertyChange(() => SubTotal);
             NotifyOfPropertyChange(() => Tax);
             NotifyOfPropertyChange(() => Total);
             NotifyOfPropertyChange(() => CanCheckOut);
+            NotifyOfPropertyChange(() => CanAddToCart);
         }
 
         public bool CanCheckOut
@@ -238,6 +282,8 @@ namespace TRMDesktopUI.ViewModels
             }
 
             await _saleEndPoint.PostSale(sale);
+
+            await ResetSalesViewModel();
         }
 
     }
